@@ -1,0 +1,16 @@
+projectId: ""
+zone: "us-central1-a"
+machineType: "e2-medium"
+deletionProtection: false
+bootDisk:
+  size: 20
+  type: "pd-standard"
+  sourceImage: "debian-cloud/debian-12"
+  autoDelete: true
+network:
+  network: "default"
+  subnetwork: ""
+  enableExternalIP: true
+  networkTier: "PREMIUM"
+tags: []
+metadataStartupScript: ""

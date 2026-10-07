@@ -1,0 +1,32 @@
+{{- /* Rendered per composition so the detail page can read the chart architecture through
+       snowplow /call under the caller's own RBAC. Edit data.architecture; the composer owns the rest. */}}
+{{- $g := .Values.global | default dict }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-architecture" ($g.compositionName | default .Release.Name) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    krateo.io/architecture: "gcp-compute-instance"
+data:
+  architecture: |
+    apiVersion: architecture.krateo.io/v1alpha1
+    kind: ChartArchitecture
+    chart: gcp-compute-instance
+    resources:
+      - id: compute-instance
+        class: custom
+        apiVersion: compute.cnrm.cloud.google.com/v1beta1
+        kind: ComputeInstance
+        template: templates/computeinstance.yaml
+        name: printf "%s-compute-instance" $.Release.Name | trunc 63 | trimSuffix "-"
+        readyWhen: .status.conditions[] | select(.type == "Ready") | .status == "True"
+{{- /* krateo:graph begin — generated from data.architecture; edit the descriptor, not this block. */}}
+{{- $v := .Values.AsMap }}
+{{- $nodes := list }}
+{{- $names := list }}
+{{- $present := true }}
+{{- $names = append $names (printf "%s-compute-instance" $.Release.Name | trunc 63 | trimSuffix "-") }}
+{{- $nodes = append $nodes (dict "id" "compute-instance" "apiVersion" "compute.cnrm.cloud.google.com/v1beta1" "kind" "ComputeInstance" "class" "custom" "level" 0 "readyWhen" ".status.conditions[] | select(.type == \"Ready\") | .status == \"True\"" "forEach" false "present" $present "names" $names "dependsOn" (list)) }}
+  graph: {{ dict "v" 1 "chart" "gcp-compute-instance" "states" (list "level-0") "composition" (dict "apiVersion" ($g.compositionApiVersion | default "") "resource" ($g.compositionResource | default "") "name" ($g.compositionName | default "") "namespace" .Release.Namespace "uid" ($g.compositionId | default "")) "nodes" $nodes | toJson | quote }}
+{{- /* krateo:graph end */}}

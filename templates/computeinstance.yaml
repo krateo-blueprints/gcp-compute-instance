@@ -1,0 +1,48 @@
+apiVersion: compute.cnrm.cloud.google.com/v1beta1
+kind: ComputeInstance
+metadata:
+  name: {{ printf "%s-compute-instance" $.Release.Name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- if .Values.projectId }}
+  annotations:
+    cnrm.cloud.google.com/project-id: {{ .Values.projectId | quote }}
+  {{- end }}
+spec:
+  zone: {{ .Values.zone | quote }}
+  machineType: {{ .Values.machineType | quote }}
+  {{- if hasKey .Values "deletionProtection" }}
+  deletionProtection: {{ .Values.deletionProtection }}
+  {{- end }}
+  bootDisk:
+    autoDelete: {{ .Values.bootDisk.autoDelete }}
+    initializeParams:
+      size: {{ .Values.bootDisk.size }}
+      type: {{ .Values.bootDisk.type | quote }}
+      sourceImageRef:
+        external: {{ .Values.bootDisk.sourceImage | quote }}
+  networkInterface:
+    - {{ if .Values.network.subnetwork }}
+      subnetworkRef:
+        external: {{ .Values.network.subnetwork | quote }}
+      {{- else }}
+      networkRef:
+        external: {{ .Values.network.network | default "default" | quote }}
+      {{- end }}
+      {{- if .Values.network.enableExternalIP }}
+      accessConfig:
+        - networkTier: {{ .Values.network.networkTier | default "PREMIUM" | quote }}
+      {{- end }}
+  {{- if .Values.tags }}
+  tags:
+    {{- range .Values.tags }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.metadataStartupScript }}
+  metadataStartupScript: {{ .Values.metadataStartupScript | quote }}
+  {{- end }}
